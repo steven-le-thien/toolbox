@@ -3,7 +3,6 @@
 #include <limits>
 #include <iostream>
 
-// Make the private fields of FibHeap public to use this test unit
 int main(){
   advanced_algo::FibHeap *my_fibonacci_heap = new advanced_algo::FibHeap; 
 
