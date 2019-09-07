@@ -83,6 +83,8 @@ void FibHeap::cascading_cut_(Node *child){
   FibHeap::make_root_(child);
   child->Node::set_mark(false);
 
+  FibHeap::update_min_(child);
+
   if(parent->Node::is_mark()){ // has the parent loses a child before?
     FibHeap::cascading_cut_(parent);
   } else {
@@ -170,10 +172,10 @@ void FibHeap::remove_node_(Node *node){
   kv_map_.erase(get_key_from_vk_map_(node));
   vk_map_.erase(node);
 
-
   // Destroyed nodes are always at the top so parents and sibling 
   //    must be NULL 
   Node *left_child = node->Node::get_left_child();
+
   if(left_child != NULL){
     Node *current_child = left_child;
     while(current_child->Node::get_parent() != NULL){
@@ -193,9 +195,10 @@ void Node::add_child(Node *child){
   Node *current_left_child = get_left_child();
 
   if(current_left_child == NULL){
+
     this->Node::set_left_child(child);
     child->Node::set_right_sibling(child);
-    child->Node::set_left_child(child);
+    child->Node::set_left_sibling(child);
   } else {
     Node *current_second_to_left_child = 
         current_left_child->Node::get_right_sibling();
@@ -212,11 +215,16 @@ void Node::add_child(Node *child){
 // Make a node from another node, more pointers manipuations
 void Node::cut_child(){
   Node *parent = this->Node::get_parent();
+ 
+  if(parent == NULL) // at the root
+    return;
+
   Node *right_sibling = this->Node::get_right_sibling();
   Node *left_sibling = this->Node::get_left_sibling();
 
   this->Node::set_parent(NULL);
   this->Node::set_right_sibling(NULL);
+  this->Node::set_left_sibling(NULL);
 
   if(left_sibling == this){ // the parent has only 1 child
     parent->Node::set_left_child(NULL);
