@@ -42,5 +42,37 @@ int main(){
   std::cout << "    Key with min val is " << 
       my_fibonacci_heap->advanced_algo::FibHeap::find_min() << std::endl;
 
+
+  // std::cout << "Second problem, inserting a sorted array of 64" << std::endl;
+  // advanced_algo::FibHeap *problem_two = new advanced_algo::FibHeap;
+  // for(int i = 0; i < 64; i++){
+  //   std::cout << "Number of trees at " << (i) << " is " << problem_two->roots_.size() << std::endl;
+  //   problem_two->advanced_algo::FibHeap::insert((63 - i) * 100, (63 - i) * 100);
+  //   if(i > 2) 
+  //     problem_two->advanced_algo::FibHeap::decrease_key((63 - 2) * 100, (63 - 2) * 100 - i - 1);
+  // }
+  // std::cout << "Number of trees " << problem_two->roots_.size() << std::endl;
+
+  // auto it = problem_two->roots_.begin();
+
+  // advanced_algo::HeapNode *traversal_node = *(it);
+  // int height = 0;
+  // while(auto child = traversal_node->advanced_algo::HeapNode::get_left_child()){
+  //   height++;
+  //   traversal_node = traversal_node->advanced_algo::HeapNode::get_left_child();
+  //   std::cout << "Is sole child: " << (child->advanced_algo::HeapNode::get_left_sibling() == child->advanced_algo::HeapNode::get_right_sibling()) << std::endl;
+  // }
+  // std::cout << "Height of the first tree is " << height << std::endl;
+  // it++;
+
+  // *traversal_node = *(it);
+  // int height = 0;
+  // while(auto child = traversal_node->advanced_algo::HeapNode::get_left_child()){
+  //   height++;
+  //   traversal_node = traversal_node->advanced_algo::HeapNode::get_left_child();
+  //   std::cout << "Is sole child: " << (child->advanced_algo::HeapNode::get_left_sibling() == child->advanced_algo::HeapNode::get_right_sibling()) << std::endl;
+  // }
+  // std::cout << "Height of the first tree is " << height << std::endl;
+
   return 0;
 }

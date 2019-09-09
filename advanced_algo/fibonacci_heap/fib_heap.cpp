@@ -20,7 +20,7 @@ FibHeap::~FibHeap(){
 // Insert is done lazily in O(1) by just adding a singleton tree to the forest
 void FibHeap::insert(int key, int val){
   // Wrap value around a new node
-  Node *new_node = new Node(val);
+  HeapNode *new_node = new HeapNode(val);
 
   // Put into the heap
   kv_map_.insert({key, new_node});
@@ -30,12 +30,12 @@ void FibHeap::insert(int key, int val){
   FibHeap::make_root_(new_node);
 
   // Recalibrate min pointer in O(1)
-  update_min_(new_node);
+  FibHeap::update_min_(new_node);
 }
 
 // Find min is easy since we maintain a min pointer
 int FibHeap::find_min(){
-  return get_key_from_vk_map_(min_pointer_);
+  return FibHeap::get_key_from_vk_map_(min_pointer_);
 }
 
 /* Delete min is also easy since we maintain a min pointer
@@ -53,10 +53,10 @@ void FibHeap::delete_min(){
  *    child then we also cut that node, thus cascading upwards the tree
  */
 void FibHeap::decrease_key(int key, int nval){
-  Node *node = (kv_map_.find(key))->second;
+  HeapNode *node = (kv_map_.find(key))->second;
 
   // Update value
-  node->Node::set_val(nval);
+  node->HeapNode::set_val(nval);
 
   // Perform a cascading cut at this node in amortized O(1)
   FibHeap::cascading_cut_(node);
@@ -68,27 +68,27 @@ void FibHeap::decrease_key(int key, int nval){
 /* Take input a hanging tree (from cutting or inserting or delete_min), 
  * register as roots and uopdate bucket
  */
-void FibHeap::make_root_(Node *node){
+void FibHeap::make_root_(HeapNode *node){
   roots_.insert(node);
-  add_to_bucket_(node); // amortized O(1)
+  FibHeap::add_to_bucket_(node); // amortized O(1)
 }
 
 /* Perform a cascading cut to make sure that each node loses as most 2 children
  *    to maintain degree guarantee.
  */
-void FibHeap::cascading_cut_(Node *child){
-  Node *parent = child->Node::get_parent();
+void FibHeap::cascading_cut_(HeapNode *child){
+  HeapNode *parent = child->HeapNode::get_parent();
 
-  child->Node::cut_child(); // actually cutting the child, manipulating pointers
+  child->HeapNode::cut_child(); //pointer manipulations
   FibHeap::make_root_(child);
-  child->Node::set_mark(false);
+  child->HeapNode::set_mark(false);
 
   FibHeap::update_min_(child);
 
-  if(parent->Node::is_mark()){ // has the parent loses a child before?
+  if(parent->HeapNode::is_mark()){ // has the parent loses a child before?
     FibHeap::cascading_cut_(parent);
   } else {
-    parent->Node::set_mark(true);
+    parent->HeapNode::set_mark(true);
   }
 }
 
@@ -97,8 +97,8 @@ void FibHeap::cascading_cut_(Node *child){
  *    is essential in degree guarantee.
  * A node is added to the bucket according to its degree and consolidated
  */
-void FibHeap::add_to_bucket_(Node * node){
-  int destination_deg = node->Node::get_deg();
+void FibHeap::add_to_bucket_(HeapNode *node){
+  int destination_deg = node->HeapNode::get_deg();
 
   if(destination_deg >= buckets_.size()) 
     buckets_.resize(destination_deg + 1);
@@ -115,16 +115,16 @@ void FibHeap::add_to_bucket_(Node * node){
  */
 void FibHeap::consolidate_bucket_(int deg){
   while(buckets_[deg].size() > 1) {
-    Node *parent, *child;
+    HeapNode *parent, *child;
 
     // Get 2 arbitrary elements in the bucket
     auto it = buckets_[deg].begin();
-    Node *first_tree = *it;
+    HeapNode *first_tree = *it;
     it++;
-    Node *second_tree = *it;
+    HeapNode *second_tree = *it;
 
     // Compete
-    if(first_tree->Node::get_val() < second_tree->Node::get_val()){
+    if(first_tree->HeapNode::get_val() < second_tree->HeapNode::get_val()){
       parent = first_tree; 
       child = second_tree;
     } else {
@@ -133,21 +133,21 @@ void FibHeap::consolidate_bucket_(int deg){
     }
 
     // Log changes
-    remove_node_from_bucket_(child);
-    remove_node_from_bucket_(parent);
-    remove_node_from_roots_(child);
+    FibHeap::remove_node_from_bucket_(child);
+    FibHeap::remove_node_from_bucket_(parent);
+    FibHeap::remove_node_from_roots_(child);
 
-    parent->Node::add_child(child);
+    parent->HeapNode::add_child(child);
 
-    add_to_bucket_(parent); //cascade if necessary
+    FibHeap::add_to_bucket_(parent); //cascade if necessary
   }
 }
 
 // Straightfoward linear scan at the roots, when min pointer is no longer valid
 void FibHeap::recalibrate_min_(){
   min_val_ = std::numeric_limits<int>::max();
-  for(Node *candidate : roots_){
-    int candidate_val = candidate->Node::get_val();
+  for(HeapNode *candidate : roots_){
+    int candidate_val = candidate->HeapNode::get_val();
     if(min_val_ > candidate_val) {
       min_val_ = candidate_val;
       min_pointer_ = candidate;
@@ -156,8 +156,8 @@ void FibHeap::recalibrate_min_(){
 }
 
 // Fast O(1) comparison with min pointer
-void FibHeap::update_min_(Node *node){
-  int val = node->Node::get_val();
+void FibHeap::update_min_(HeapNode *node){
+  int val = node->HeapNode::get_val();
   if(min_val_ > val) {
     min_pointer_ = node;
     min_val_ = val;
@@ -165,25 +165,25 @@ void FibHeap::update_min_(Node *node){
 }
 
 // Remove a node from the graph completely (eg. from delete_min)
-void FibHeap::remove_node_(Node *node){
-  remove_node_from_roots_(node);
-  remove_node_from_bucket_(node);
+void FibHeap::remove_node_(HeapNode *node){
+  FibHeap::remove_node_from_roots_(node);
+  FibHeap::remove_node_from_bucket_(node);
 
   kv_map_.erase(get_key_from_vk_map_(node));
   vk_map_.erase(node);
 
   // Destroyed nodes are always at the top so parents and sibling 
   //    must be NULL 
-  Node *left_child = node->Node::get_left_child();
+  HeapNode *left_child = node->HeapNode::get_left_child();
 
   if(left_child != NULL){
-    Node *current_child = left_child;
-    while(current_child->Node::get_parent() != NULL){
+    HeapNode *current_child = left_child;
+    while(current_child->HeapNode::get_parent() != NULL){
       FibHeap::make_root_(current_child);
 
-      current_child->Node::set_parent(NULL);
-      current_child->Node::set_left_sibling(NULL);
-      current_child->Node::set_right_sibling(NULL);
+      current_child->HeapNode::set_parent(NULL);
+      current_child->HeapNode::set_left_sibling(NULL);
+      current_child->HeapNode::set_right_sibling(NULL);
     }
   }
 
@@ -191,52 +191,52 @@ void FibHeap::remove_node_(Node *node){
 }
 
 // Make a node a child of another node, more pointers manipuations
-void Node::add_child(Node *child){
-  Node *current_left_child = get_left_child();
+void HeapNode::add_child(HeapNode *child){
+  HeapNode *current_left_child = get_left_child();
 
   if(current_left_child == NULL){
 
-    this->Node::set_left_child(child);
-    child->Node::set_right_sibling(child);
-    child->Node::set_left_sibling(child);
+    this->HeapNode::set_left_child(child);
+    child->HeapNode::set_right_sibling(child);
+    child->HeapNode::set_left_sibling(child);
   } else {
-    Node *current_second_to_left_child = 
-        current_left_child->Node::get_right_sibling();
-    current_left_child->Node::set_right_sibling(child);
-    child->Node::set_right_sibling(current_second_to_left_child); 
-    child->Node::set_left_sibling(current_left_child);
+    HeapNode *current_second_to_left_child = 
+        current_left_child->HeapNode::get_right_sibling();
+    current_left_child->HeapNode::set_right_sibling(child);
+    child->HeapNode::set_right_sibling(current_second_to_left_child); 
+    child->HeapNode::set_left_sibling(current_left_child);
   }
-  child->Node::set_parent(this);
+  child->HeapNode::set_parent(this);
 
-  this->Node::inc_deg();
+  HeapNode::inc_deg();
 }
 
 
 // Make a node from another node, more pointers manipuations
-void Node::cut_child(){
-  Node *parent = this->Node::get_parent();
+void HeapNode::cut_child(){
+  HeapNode *parent = HeapNode::get_parent();
  
   if(parent == NULL) // at the root
     return;
 
-  Node *right_sibling = this->Node::get_right_sibling();
-  Node *left_sibling = this->Node::get_left_sibling();
+  HeapNode *right_sibling = HeapNode::get_right_sibling();
+  HeapNode *left_sibling = HeapNode::get_left_sibling();
 
-  this->Node::set_parent(NULL);
-  this->Node::set_right_sibling(NULL);
-  this->Node::set_left_sibling(NULL);
+  HeapNode::set_parent(NULL);
+  HeapNode::set_right_sibling(NULL);
+  HeapNode::set_left_sibling(NULL);
 
   if(left_sibling == this){ // the parent has only 1 child
-    parent->Node::set_left_child(NULL);
+    parent->HeapNode::set_left_child(NULL);
   } else {
-    if(parent->Node::get_left_child() == this)
-      parent->Node::set_left_child(left_sibling);
+    if(parent->HeapNode::get_left_child() == this)
+      parent->HeapNode::set_left_child(left_sibling);
 
-    right_sibling->Node::set_left_sibling(left_sibling);
-    left_sibling->Node::set_right_sibling(right_sibling);
+    right_sibling->HeapNode::set_left_sibling(left_sibling);
+    left_sibling->HeapNode::set_right_sibling(right_sibling);
   }
 
-  parent->Node::dec_deg(); 
+  parent->HeapNode::dec_deg(); 
 }
 } // namespace advanced_algo
 
